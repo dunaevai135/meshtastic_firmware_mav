@@ -50,6 +50,8 @@ class GPSStatus : public Status
 
     bool getIsPowerSaving() const { return isPowerSaving; }
 
+    const meshtastic_Position &getPosition() const { return p; }
+
     int32_t getLatitude() const
     {
         if (config.position.fixed_position) {
@@ -115,6 +117,7 @@ class GPSStatus : public Status
         initialized = true;
         hasLock = newStatus->hasLock;
         isConnected = newStatus->isConnected;
+        isPowerSaving = newStatus->isPowerSaving;
 
         p = newStatus->p;
 

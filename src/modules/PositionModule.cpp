@@ -2,6 +2,7 @@
 #include "PositionModule.h"
 #include "Default.h"
 #include "GPS.h"
+#include "MAVLinkPositionSource.h"
 #include "MeshService.h"
 #include "NodeDB.h"
 #include "RTC.h"
@@ -171,7 +172,7 @@ bool PositionModule::hasGPS()
 #if MESHTASTIC_EXCLUDE_GPS
     return false;
 #else
-    return gps && gps->isConnected();
+    return (gps && gps->isConnected()) || (mavlinkPositionSource && mavlinkPositionSource->isConnected());
 #endif
 }
 

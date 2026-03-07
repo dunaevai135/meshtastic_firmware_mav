@@ -34,7 +34,7 @@ extern Allocator<meshtastic_ClientNotification> &clientNotificationPool;
  */
 class MeshService
 {
-#if HAS_GPS
+#if !MESHTASTIC_EXCLUDE_GPS
     CallbackObserver<MeshService, const meshtastic::GPSStatus *> gpsObserver =
         CallbackObserver<MeshService, const meshtastic::GPSStatus *>(this, &MeshService::onGPSChanged);
 #endif
@@ -191,7 +191,7 @@ class MeshService
     uint32_t GetTimeSinceMeshPacket(const meshtastic_MeshPacket *mp);
 
   private:
-#if HAS_GPS
+#if !MESHTASTIC_EXCLUDE_GPS
     /// Called when our gps position has changed - updates nodedb and sends Location message out into the mesh
     /// returns 0 to allow further processing
     int onGPSChanged(const meshtastic::GPSStatus *arg);

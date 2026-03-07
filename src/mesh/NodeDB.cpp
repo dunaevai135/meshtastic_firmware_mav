@@ -374,6 +374,14 @@ NodeDB::NodeDB()
         config.position.broadcast_smart_minimum_interval_secs = MAX_INTERVAL;
     if (config.position.gps_en_gpio > MAX_INTERVAL)
         config.position.gps_en_gpio = MAX_INTERVAL;
+    if (config.position.mavlink_uart_baud > MAX_INTERVAL)
+        config.position.mavlink_uart_baud = MAX_INTERVAL;
+    if (config.position.mavlink_sysid > UINT8_MAX)
+        config.position.mavlink_sysid = UINT8_MAX;
+    if (config.position.mavlink_compid > UINT8_MAX)
+        config.position.mavlink_compid = UINT8_MAX;
+    if (config.position.mavlink_stale_secs > MAX_INTERVAL)
+        config.position.mavlink_stale_secs = MAX_INTERVAL;
     if (moduleConfig.neighbor_info.update_interval > MAX_INTERVAL)
         moduleConfig.neighbor_info.update_interval = MAX_INTERVAL;
     if (moduleConfig.telemetry.device_update_interval > MAX_INTERVAL)
@@ -663,6 +671,18 @@ void NodeDB::installDefaultConfig(bool preserveKey = false)
     else
         config.position.gps_mode = meshtastic_Config_PositionConfig_GpsMode_DISABLED;
 #else
+    config.position.gps_mode = meshtastic_Config_PositionConfig_GpsMode_ENABLED;
+#endif
+    config.position.position_source = meshtastic_Config_PositionConfig_PositionSourceType_LEGACY_GPS;
+    config.position.mavlink_uart_baud = 57600;
+    config.position.mavlink_sysid = 0;
+    config.position.mavlink_compid = 0;
+    config.position.mavlink_stale_secs = 10;
+#ifdef HELTEC_V3
+    // Bring-up defaults for one-way ArduPilot telemetry on Heltec V3: FC TX -> GPIO44.
+    config.position.position_source = meshtastic_Config_PositionConfig_PositionSourceType_MAVLINK_UART;
+    config.position.rx_gpio = 44;
+    config.position.tx_gpio = 0;
     config.position.gps_mode = meshtastic_Config_PositionConfig_GpsMode_ENABLED;
 #endif
 #ifdef USERPREFS_CONFIG_SMART_POSITION_ENABLED
@@ -1307,6 +1327,18 @@ void NodeDB::loadFromDisk()
         config.security = backupSecurity;
         saveToDisk(SEGMENT_CONFIG);
     }
+
+#ifdef HELTEC_V3
+    LOG_INFO("Apply HELTEC_V3 MAVLink position defaults");
+    config.position.position_source = meshtastic_Config_PositionConfig_PositionSourceType_MAVLINK_UART;
+    config.position.rx_gpio = 44;
+    config.position.tx_gpio = 0;
+    config.position.mavlink_uart_baud = 57600;
+    config.position.mavlink_sysid = 0;
+    config.position.mavlink_compid = 0;
+    config.position.mavlink_stale_secs = 10;
+    config.position.gps_mode = meshtastic_Config_PositionConfig_GpsMode_ENABLED;
+#endif
 
     // Make sure we load hard coded admin keys even when the configuration file has none.
     // Initialize admin_key_count to zero

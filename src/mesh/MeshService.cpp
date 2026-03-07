@@ -2,6 +2,7 @@
 
 #if !MESHTASTIC_EXCLUDE_GPS
 #include "GPS.h"
+#include "MAVLinkPositionSource.h"
 #endif
 
 #include "../concurrency/Periodic.h"
@@ -76,9 +77,11 @@ MeshService::MeshService()
 
 void MeshService::init()
 {
-#if HAS_GPS
+#if !MESHTASTIC_EXCLUDE_GPS
     if (gps)
         gpsObserver.observe(&gps->newStatus);
+    if (mavlinkPositionSource)
+        gpsObserver.observe(&mavlinkPositionSource->newStatus);
 #endif
 }
 
@@ -281,7 +284,7 @@ bool MeshService::trySendPosition(NodeNum dest, bool wantReplies)
     assert(node);
 
     if (nodeDB->hasValidPosition(node)) {
-#if HAS_GPS && !MESHTASTIC_EXCLUDE_GPS
+#if !MESHTASTIC_EXCLUDE_GPS
         if (positionModule) {
             if (!config.position.fixed_position && !nodeDB->hasLocalPositionSinceBoot()) {
                 LOG_DEBUG("Skip position ping; no fresh position since boot");
@@ -413,16 +416,16 @@ meshtastic_NodeInfoLite *MeshService::refreshLocalMeshNode()
     return node;
 }
 
-#if HAS_GPS
+#if !MESHTASTIC_EXCLUDE_GPS
 int MeshService::onGPSChanged(const meshtastic::GPSStatus *newStatus)
 {
     // Update our local node info with our position (even if we don't decide to update anyone else)
     const meshtastic_NodeInfoLite *node = refreshLocalMeshNode();
     meshtastic_Position pos = meshtastic_Position_init_default;
 
-    if (newStatus->getHasLock()) {
-        // load data from GPS object, will add timestamp + battery further down
-        pos = gps->p;
+    if (newStatus->getHasLock() || newStatus->getPosition().latitude_i || newStatus->getPosition().longitude_i) {
+        // Load position from the current source status. This preserves the last valid fix when the source transitions to stale.
+        pos = newStatus->getPosition();
     } else {
         // The GPS has lost lock
 #ifdef GPS_DEBUG

@@ -159,6 +159,13 @@ typedef enum _meshtastic_Config_PositionConfig_GpsMode {
     meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT = 2
 } meshtastic_Config_PositionConfig_GpsMode;
 
+typedef enum _meshtastic_Config_PositionConfig_PositionSourceType {
+    /* Legacy internal GNSS / NMEA backend. */
+    meshtastic_Config_PositionConfig_PositionSourceType_LEGACY_GPS = 0,
+    /* Read-only MAVLink stream from UART. */
+    meshtastic_Config_PositionConfig_PositionSourceType_MAVLINK_UART = 1
+} meshtastic_Config_PositionConfig_PositionSourceType;
+
 typedef enum _meshtastic_Config_NetworkConfig_AddressMode {
     /* obtain ip address via DHCP */
     meshtastic_Config_NetworkConfig_AddressMode_DHCP = 0,
@@ -406,6 +413,20 @@ typedef struct _meshtastic_Config_PositionConfig {
     uint32_t gps_en_gpio;
     /* Set where GPS is enabled, disabled, or not present */
     meshtastic_Config_PositionConfig_GpsMode gps_mode;
+    /* Selects which backend provides the local position. */
+    meshtastic_Config_PositionConfig_PositionSourceType position_source;
+    /* UART baud rate for MAVLink UART mode.
+ Defaults to 57600 when unset. */
+    uint32_t mavlink_uart_baud;
+    /* Optional filter for accepted MAVLink system id.
+ Zero disables the filter. */
+    uint32_t mavlink_sysid;
+    /* Optional filter for accepted MAVLink component id.
+ Zero disables the filter. */
+    uint32_t mavlink_compid;
+    /* How long a MAVLink fix remains fresh without a new valid packet.
+ Defaults to 10 seconds when unset. */
+    uint32_t mavlink_stale_secs;
 } meshtastic_Config_PositionConfig;
 
 /* Power Config\
@@ -673,6 +694,10 @@ extern "C" {
 #define _meshtastic_Config_PositionConfig_GpsMode_MAX meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT
 #define _meshtastic_Config_PositionConfig_GpsMode_ARRAYSIZE ((meshtastic_Config_PositionConfig_GpsMode)(meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT+1))
 
+#define _meshtastic_Config_PositionConfig_PositionSourceType_MIN meshtastic_Config_PositionConfig_PositionSourceType_LEGACY_GPS
+#define _meshtastic_Config_PositionConfig_PositionSourceType_MAX meshtastic_Config_PositionConfig_PositionSourceType_MAVLINK_UART
+#define _meshtastic_Config_PositionConfig_PositionSourceType_ARRAYSIZE ((meshtastic_Config_PositionConfig_PositionSourceType)(meshtastic_Config_PositionConfig_PositionSourceType_MAVLINK_UART+1))
+
 #define _meshtastic_Config_NetworkConfig_AddressMode_MIN meshtastic_Config_NetworkConfig_AddressMode_DHCP
 #define _meshtastic_Config_NetworkConfig_AddressMode_MAX meshtastic_Config_NetworkConfig_AddressMode_STATIC
 #define _meshtastic_Config_NetworkConfig_AddressMode_ARRAYSIZE ((meshtastic_Config_NetworkConfig_AddressMode)(meshtastic_Config_NetworkConfig_AddressMode_STATIC+1))
@@ -723,6 +748,7 @@ extern "C" {
 #define meshtastic_Config_DeviceConfig_buzzer_mode_ENUMTYPE meshtastic_Config_DeviceConfig_BuzzerMode
 
 #define meshtastic_Config_PositionConfig_gps_mode_ENUMTYPE meshtastic_Config_PositionConfig_GpsMode
+#define meshtastic_Config_PositionConfig_position_source_ENUMTYPE meshtastic_Config_PositionConfig_PositionSourceType
 
 
 #define meshtastic_Config_NetworkConfig_address_mode_ENUMTYPE meshtastic_Config_NetworkConfig_AddressMode
@@ -746,7 +772,7 @@ extern "C" {
 /* Initializer values for message structs */
 #define meshtastic_Config_init_default           {0, {meshtastic_Config_DeviceConfig_init_default}}
 #define meshtastic_Config_DeviceConfig_init_default {_meshtastic_Config_DeviceConfig_Role_MIN, 0, 0, 0, _meshtastic_Config_DeviceConfig_RebroadcastMode_MIN, 0, 0, 0, 0, "", 0, _meshtastic_Config_DeviceConfig_BuzzerMode_MIN}
-#define meshtastic_Config_PositionConfig_init_default {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, _meshtastic_Config_PositionConfig_GpsMode_MIN}
+#define meshtastic_Config_PositionConfig_init_default {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, _meshtastic_Config_PositionConfig_GpsMode_MIN, _meshtastic_Config_PositionConfig_PositionSourceType_MIN, 0, 0, 0, 0}
 #define meshtastic_Config_PowerConfig_init_default {0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define meshtastic_Config_NetworkConfig_init_default {0, "", "", "", 0, _meshtastic_Config_NetworkConfig_AddressMode_MIN, false, meshtastic_Config_NetworkConfig_IpV4Config_init_default, "", 0, 0}
 #define meshtastic_Config_NetworkConfig_IpV4Config_init_default {0, 0, 0, 0}
@@ -757,7 +783,7 @@ extern "C" {
 #define meshtastic_Config_SessionkeyConfig_init_default {0}
 #define meshtastic_Config_init_zero              {0, {meshtastic_Config_DeviceConfig_init_zero}}
 #define meshtastic_Config_DeviceConfig_init_zero {_meshtastic_Config_DeviceConfig_Role_MIN, 0, 0, 0, _meshtastic_Config_DeviceConfig_RebroadcastMode_MIN, 0, 0, 0, 0, "", 0, _meshtastic_Config_DeviceConfig_BuzzerMode_MIN}
-#define meshtastic_Config_PositionConfig_init_zero {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, _meshtastic_Config_PositionConfig_GpsMode_MIN}
+#define meshtastic_Config_PositionConfig_init_zero {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, _meshtastic_Config_PositionConfig_GpsMode_MIN, _meshtastic_Config_PositionConfig_PositionSourceType_MIN, 0, 0, 0, 0}
 #define meshtastic_Config_PowerConfig_init_zero  {0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define meshtastic_Config_NetworkConfig_init_zero {0, "", "", "", 0, _meshtastic_Config_NetworkConfig_AddressMode_MIN, false, meshtastic_Config_NetworkConfig_IpV4Config_init_zero, "", 0, 0}
 #define meshtastic_Config_NetworkConfig_IpV4Config_init_zero {0, 0, 0, 0}
@@ -793,6 +819,11 @@ extern "C" {
 #define meshtastic_Config_PositionConfig_broadcast_smart_minimum_interval_secs_tag 11
 #define meshtastic_Config_PositionConfig_gps_en_gpio_tag 12
 #define meshtastic_Config_PositionConfig_gps_mode_tag 13
+#define meshtastic_Config_PositionConfig_position_source_tag 14
+#define meshtastic_Config_PositionConfig_mavlink_uart_baud_tag 15
+#define meshtastic_Config_PositionConfig_mavlink_sysid_tag 16
+#define meshtastic_Config_PositionConfig_mavlink_compid_tag 17
+#define meshtastic_Config_PositionConfig_mavlink_stale_secs_tag 18
 #define meshtastic_Config_PowerConfig_is_power_saving_tag 1
 #define meshtastic_Config_PowerConfig_on_battery_shutdown_after_secs_tag 2
 #define meshtastic_Config_PowerConfig_adc_multiplier_override_tag 3
@@ -924,7 +955,12 @@ X(a, STATIC,   SINGULAR, UINT32,   tx_gpio,           9) \
 X(a, STATIC,   SINGULAR, UINT32,   broadcast_smart_minimum_distance,  10) \
 X(a, STATIC,   SINGULAR, UINT32,   broadcast_smart_minimum_interval_secs,  11) \
 X(a, STATIC,   SINGULAR, UINT32,   gps_en_gpio,      12) \
-X(a, STATIC,   SINGULAR, UENUM,    gps_mode,         13)
+X(a, STATIC,   SINGULAR, UENUM,    gps_mode,         13) \
+X(a, STATIC,   SINGULAR, UENUM,    position_source,  14) \
+X(a, STATIC,   SINGULAR, UINT32,   mavlink_uart_baud,  15) \
+X(a, STATIC,   SINGULAR, UINT32,   mavlink_sysid,    16) \
+X(a, STATIC,   SINGULAR, UINT32,   mavlink_compid,   17) \
+X(a, STATIC,   SINGULAR, UINT32,   mavlink_stale_secs,  18)
 #define meshtastic_Config_PositionConfig_CALLBACK NULL
 #define meshtastic_Config_PositionConfig_DEFAULT NULL
 
@@ -1061,7 +1097,7 @@ extern const pb_msgdesc_t meshtastic_Config_SessionkeyConfig_msg;
 #define meshtastic_Config_LoRaConfig_size        88
 #define meshtastic_Config_NetworkConfig_IpV4Config_size 20
 #define meshtastic_Config_NetworkConfig_size     204
-#define meshtastic_Config_PositionConfig_size    62
+#define meshtastic_Config_PositionConfig_size    91
 #define meshtastic_Config_PowerConfig_size       52
 #define meshtastic_Config_SecurityConfig_size    178
 #define meshtastic_Config_SessionkeyConfig_size  0

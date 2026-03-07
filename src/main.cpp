@@ -1,6 +1,7 @@
 #include "configuration.h"
 #if !MESHTASTIC_EXCLUDE_GPS
 #include "GPS.h"
+#include "MAVLinkPositionSource.h"
 #endif
 #include "MeshRadio.h"
 #include "MeshService.h"
@@ -851,7 +852,15 @@ void setup()
 #ifdef SENSOR_GPS_CONFLICT
     if (sensor_detected == false) {
 #endif
-        if (HAS_GPS) {
+        if (config.position.position_source == meshtastic_Config_PositionConfig_PositionSourceType_MAVLINK_UART) {
+            mavlinkPositionSource = std::unique_ptr<MAVLinkPositionSource>(new MAVLinkPositionSource());
+            if (mavlinkPositionSource && mavlinkPositionSource->begin()) {
+                gpsStatus->observe(&mavlinkPositionSource->newStatus);
+            } else {
+                mavlinkPositionSource.reset();
+                LOG_ERROR("Run without MAVLink position source");
+            }
+        } else if (HAS_GPS) {
             if (config.position.gps_mode != meshtastic_Config_PositionConfig_GpsMode_NOT_PRESENT) {
                 gps = GPS::createGps();
                 if (gps) {
@@ -1146,6 +1155,11 @@ void loop()
 #endif
 
     service->loop();
+#if !MESHTASTIC_EXCLUDE_GPS
+    if (mavlinkPositionSource) {
+        mavlinkPositionSource->poll();
+    }
+#endif
 #if !MESHTASTIC_EXCLUDE_INPUTBROKER && defined(HAS_FREE_RTOS) && !defined(ARCH_RP2040)
     if (inputBroker)
         inputBroker->processInputEventQueue();
